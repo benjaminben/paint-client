@@ -4,12 +4,13 @@ import Scene from './Scene';
 import './App.css';
 
 function App() {
-  const ws = new WebSocket('ws://bb.ngrok.io');
+  const ws = new WebSocket('ws://1993.ngrok.io')
   const [message, setMessage] = useState("")
 
+  ws.binaryType = "arraybuffer"
   ws.onmessage = onMessage
   ws.onclose = onClose
-  
+
   function sendData(message) {
     ws.send(message);
   }
@@ -26,7 +27,9 @@ function App() {
   return (
     <div className="App">
       <Scene sendData={sendData} />
-      <p className="message">{message}</p>
+      {
+        // <p className="message">{message}</p>
+      }
     </div>
   );
 }
