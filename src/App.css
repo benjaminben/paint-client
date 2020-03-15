@@ -3,6 +3,10 @@ html, body {
   overflow: hidden;
 }
 
+body {
+  background: rebeccapurple;
+}
+
 .App {
   text-align: center;
 }

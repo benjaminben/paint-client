@@ -33,17 +33,29 @@ class Scene extends React.Component {
 		console.log(canvas, width, height)
 		this.setState({width, height})
 	}
- 
+
 	Factory(buffer) {
-		return new Blob([JSON.stringify(buffer)], {type: "application/json"})
+		// return new Blob([JSON.stringify(buffer)], {type: "application/json"})
+		return buffer
 	}
 
 	formatClientEvent(c) {
 		const {canvas} = this.refs
-		return {
-			u: c.clientX / canvas.width,
-			v: c.clientY / canvas.height,
-		}
+
+		const buffer = new ArrayBuffer(8)
+		// const clientXSlot = new Float32Array(buffer, 0, 0.1)
+		const clientXSlot = new Float32Array(buffer, 0)
+		const clientYSlot = new Float32Array(buffer, 4)
+		clientXSlot[0] = c.clientX / canvas.width
+		clientYSlot[0] = c.clientY / canvas.height
+		// const clientXSlot = new Float32Array(buffer, 0, c.clientX / canvas.width)
+		// const clientYSlot = new Float32Array(buffer, 4, c.clientY / canvas.height)
+		// const intSlot = new Int32Array(buffer, 4, 1)
+		// const uintSlot = new Uint32Array(buffer, 8, 1)
+
+		const scope = new Uint8Array(buffer)
+
+		return scope
 	}
 
 	bindUserEvents() {
@@ -55,15 +67,15 @@ class Scene extends React.Component {
 	mouseDown(e) {
 		const { sendData } = this.props
 		const { Factory, formatClientEvent, mouseMove, mouseUp } = this
-		
+
 		console.log(this.props)
 
 		sendData(Factory(formatClientEvent(e)))
-		
+
 		this.refs.canvas.addEventListener("mousemove", mouseMove)
 		window.addEventListener("mouseup", mouseUp)
 	}
-	
+
 	mouseMove(e) {
 		const { sendData } = this.props
 		const { Factory, formatClientEvent, mouseMove, mouseUp } = this
@@ -74,7 +86,7 @@ class Scene extends React.Component {
 	mouseUp(e) {
 		const { sendData } = this.props
 		const { Factory, formatClientEvent, mouseMove, mouseUp } = this
-		
+
 		this.refs.canvas.removeEventListener("mousemove", mouseMove)
 		window.removeEventListener("mouseup", mouseUp)
 	}
@@ -87,8 +99,8 @@ class Scene extends React.Component {
 		this.refs.canvas.addEventListener("touchmove", touchMove)
 		window.addEventListener("touchend", touchEnd)
 	}
-	
-	touchMove(e) { 
+
+	touchMove(e) {
 		const { sendData } = this.props
 		const { Factory, formatClientEvent } = this
 		sendData(Factory(formatClientEvent(e.targetTouches[0])))
@@ -110,7 +122,7 @@ class Scene extends React.Component {
 					position: "absolute",
 					top: 0, left: 0,
 					width: "100%", height: "0px",
-					paddingBottom: "56.25%",
+					paddingBottom: "100%",
 					background: "black"}} />
 		)
 	}
