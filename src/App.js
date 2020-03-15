@@ -4,7 +4,7 @@ import Scene from './Scene';
 import './App.css';
 
 function App() {
-  const ws = new WebSocket('ws://bb.ngrok.io');
+  const ws = new WebSocket('ws://1993.ngrok.io');
   const [message, setMessage] = useState("")
 
   ws.onmessage = onMessage
