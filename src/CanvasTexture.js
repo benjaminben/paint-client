@@ -3,30 +3,24 @@ import React, {useRef, useEffect, useState} from "react"
 export default ({height, setRef, size, show}) => {
   const canvas = useRef(null)
   let ctx
-  let circle = {}
   let time = 0
   function init() {
     const c = canvas.current
     ctx = c.getContext("2d")
-    circle.cx = c.width / 2
-    circle.cy = c.height / 2
-    circle.r = 10
-    circle.fill = "green"
 
-    draw()
-
-    run()
+    const tex = new Image()
+    tex.onload = () => {
+      ctx.drawImage(tex, 0, 0, c.width, c.height)
+      // draw()
+      // run()
+    }
+    tex.src = `${process.env.PUBLIC_URL}/barn/textures/Rbarn15_Albedo.png`
   }
   function update() {
-    const c = canvas.current
-    circle.cx = Math.sin(time) * c.width / 2 + c.width / 2
+
   }
   function draw() {
-    const c = canvas.current
-    // ctx.clearRect(0, 0, c.width, c.height)
 
-    ctx.fillStyle = "red"
-    ctx.fillRect(0,0,c.width,c.height)
   }
   function run() {
     // time += 0.01

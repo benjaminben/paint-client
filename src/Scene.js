@@ -1,5 +1,6 @@
 import React, { useContext } from "react"
 import * as THREE from "three"
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js"
 import CanvasTexture from "./CanvasTexture"
 import ColorPalette from "./ColorPalette"
 import { store } from "./store"
@@ -55,8 +56,9 @@ class Scene extends React.Component {
 		var { canvas } = this.refs
 		var { width, height } = this.state
 
-		camera = new THREE.PerspectiveCamera(70, width / height, 0.01, 10)
-		camera.position.z = 1
+		camera = new THREE.PerspectiveCamera(70, width / height, 0.01, 10000)
+		camera.position.z = 2000
+		camera.position.y = 500
 
 		scene = new THREE.Scene()
 
@@ -66,9 +68,9 @@ class Scene extends React.Component {
 			map: texture,
 		})
 
-		mesh = new THREE.Mesh( geometry, material )
-		mesh.rotation.y = 1
-		scene.add( mesh )
+		// mesh = new THREE.Mesh( geometry, material )
+		// mesh.rotation.y = 1
+		// scene.add( mesh )
 
 		renderer = new THREE.WebGLRenderer( { canvas, antialias: true } )
 		renderer.setSize( width, height )
@@ -80,6 +82,32 @@ class Scene extends React.Component {
 		this.texture = texture
 		this.raycaster = new THREE.Raycaster()
 		this.user = new THREE.Vector2()
+
+		var loader = new OBJLoader()
+		loader.load(
+			`${process.env.PUBLIC_URL}/barn/barn.obj`,
+			object => {
+				object.traverse(child => {
+					if ( child instanceof THREE.Mesh ) {
+						child.material.map = texture;
+						// access other properties of material
+					}
+				})
+				// object.scale.x = 0.01
+				// object.scale.y = 0.01
+				// object.scale.z = 0.01
+				// object.rotation.y = 101
+				scene.add(object)
+				this.barn = object
+			}
+		)
+
+		var light = new THREE.PointLight(0xffffff, 1, 0);
+		light.position.set(camera.position.x, camera.position.y, camera.position.z);
+		light.lookAt(new THREE.Vector3(0,0,0))
+		scene.add(light);
+		var ambientLight = new THREE.AmbientLight(0x111111);
+		scene.add(ambientLight);
 
 		this.run()
 		this.resize()
@@ -94,6 +122,7 @@ class Scene extends React.Component {
 	}
 
 	updateTexture(uv) {
+		// console.log(uv)
 		const ctx = this.textureCtx
 		const { canvas } = ctx
 		const { brushColor } = this.context.state
@@ -108,20 +137,19 @@ class Scene extends React.Component {
 	castRay() {
 		const { raycaster, camera, scene, user } = this
 		this.raycaster.setFromCamera( user, camera )
-		const intersects = raycaster.intersectObjects( scene.children )
+		const intersects = raycaster.intersectObjects( this.barn.children )
 		for (var i = 0; i < intersects.length; i++) {
-			// console.log(intersects[i])
-			const {uv} = intersects[i]
+			const { uv, face, faceIndex } = intersects[i]
+			console.log(uv, face)
+			// face.color.setRGB(1,1,1)
 			this.updateTexture(uv)
 		}
 	}
 
 	run() {
-		const { run, mesh, scene, camera, renderer } = this
+		const { barn, run, mesh, scene, camera, renderer } = this
 		window.requestAnimationFrame( run )
-		// mesh.rotation.x += 0.01
-		// mesh.rotation.y += 0.02
-		// console.log(this.texture)
+		// if (barn) {barn.rotation.y += 0.01}
 		this.texture.needsUpdate = true
 		renderer.render( scene, camera )
 	}
