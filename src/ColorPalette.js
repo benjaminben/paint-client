@@ -11,7 +11,6 @@ export default (props) => {
   const globalState = useContext(store)
   const { dispatch } = globalState
   const { brushColor } = globalState.state
-  console.log("GLOBAL", globalState)
   return(
     <div
       id="ColorPalette"
