@@ -23,25 +23,20 @@ export default ({height, setRef, size, show}) => {
   }
   function draw() {
     const c = canvas.current
-    ctx.clearRect(0, 0, c.width, c.height)
+    // ctx.clearRect(0, 0, c.width, c.height)
 
     ctx.fillStyle = "red"
     ctx.fillRect(0,0,c.width,c.height)
-
-    ctx.beginPath()
-    ctx.arc(circle.cx, circle.cy, circle.r, 0, 2 * Math.PI, false)
-    ctx.fillStyle = circle.fill
-    ctx.fill()
   }
   function run() {
-    time += 0.01
-    update()
-    draw()
+    // time += 0.01
+    // update()
+    // draw()
     window.requestAnimationFrame(run)
   }
   useEffect(() => {
     init()
-    setRef(ctx.canvas)
+    setRef(ctx)
   }, [])
   return(
     <canvas

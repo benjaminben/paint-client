@@ -1,8 +1,12 @@
-import React from "react"
+import React, { useContext } from "react"
 import * as THREE from "three"
 import CanvasTexture from "./CanvasTexture"
+import ColorPalette from "./ColorPalette"
+import { store } from "./store"
 
 class Scene extends React.Component {
+	static contextType = store
+
 	constructor(props) {
 		super(props)
 
@@ -26,19 +30,22 @@ class Scene extends React.Component {
 		this.touchEnd = this.touchEnd.bind(this)
 		this.resize = this.resize.bind(this)
 		this.calcYInset = this.calcYInset.bind(this)
+		this.castRay = this.castRay.bind(this)
+		this.updateUser = this.updateUser.bind(this)
+		this.updateTexture = this.updateTexture.bind(this)
 
 		this.init = this.init.bind(this)
 		this.run = this.run.bind(this)
-		this.setTextureRef = this.setTextureRef.bind(this)
+		this.setTextureContext = this.setTextureContext.bind(this)
 	}
 
 	componentDidMount() {
 		this.bindUserEvents()
 	}
 
-	setTextureRef(r) {
-		console.log("SETTING TEX", r)
-		this.canvasTexture = r
+	setTextureContext(ctx) {
+		this.textureCtx = ctx
+		this.textureCanvas = ctx.canvas
 		this.init()
 	}
 
@@ -53,8 +60,8 @@ class Scene extends React.Component {
 
 		scene = new THREE.Scene()
 
-		texture = new THREE.CanvasTexture(this.canvasTexture)
-		geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 )
+		texture = new THREE.CanvasTexture(this.textureCanvas)
+		geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 )
 		material = new THREE.MeshBasicMaterial({
 			map: texture,
 		})
@@ -71,10 +78,42 @@ class Scene extends React.Component {
 		this.renderer = renderer
 		this.mesh = mesh
 		this.texture = texture
+		this.raycaster = new THREE.Raycaster()
+		this.user = new THREE.Vector2()
 
 		this.run()
 		this.resize()
 		window.addEventListener("resize", this.resize)
+	}
+
+	updateUser(userEvent) {
+		this.user.x = (userEvent.clientX / this.refs.canvas.width) * 2 - 1
+		this.user.y = (userEvent.clientY / this.refs.canvas.height) * 2 - 1
+
+		this.castRay()
+	}
+
+	updateTexture(uv) {
+		const ctx = this.textureCtx
+		const { canvas } = ctx
+		const { brushColor } = this.context.state
+		const x = uv.x*canvas.width
+		const y = uv.y*canvas.height
+		ctx.beginPath()
+		ctx.arc(x, y, 2, 0, 2 * Math.PI, false)
+		ctx.fillStyle = brushColor
+		ctx.fill()
+	}
+
+	castRay() {
+		const { raycaster, camera, scene, user } = this
+		this.raycaster.setFromCamera( user, camera )
+		const intersects = raycaster.intersectObjects( scene.children )
+		for (var i = 0; i < intersects.length; i++) {
+			// console.log(intersects[i])
+			const {uv} = intersects[i]
+			this.updateTexture(uv)
+		}
 	}
 
 	run() {
@@ -135,6 +174,7 @@ class Scene extends React.Component {
 		const { sendData } = this.props
 		const { Factory, formatClientEvent, mouseMove, mouseUp } = this
 
+		this.updateUser(e)
 		sendData(Factory(formatClientEvent(e)))
 
 		this.refs.canvas.addEventListener("mousemove", mouseMove)
@@ -144,7 +184,7 @@ class Scene extends React.Component {
 	mouseMove(e) {
 		const { sendData } = this.props
 		const { Factory, formatClientEvent, mouseMove, mouseUp } = this
-
+		this.updateUser(e)
 		sendData(Factory(formatClientEvent(e)))
 	}
 
@@ -159,7 +199,7 @@ class Scene extends React.Component {
 	touchStart(e) {
 		const { sendData } = this.props
 		const { Factory, formatClientEvent, touchMove, touchEnd } = this
-
+		this.updateUser(e.targetTouches[0])
 		sendData(Factory(formatClientEvent(e.targetTouches[0])))
 		this.refs.canvas.addEventListener("touchmove", touchMove)
 		window.addEventListener("touchend", touchEnd)
@@ -179,7 +219,7 @@ class Scene extends React.Component {
 
 	render() {
 		const {width, height, renderTexturePreview} = this.state
-		const {setTextureRef} = this
+		const {setTextureContext} = this
 		return(
 			<div className="scene">
 				<canvas ref="canvas"
@@ -192,9 +232,10 @@ class Scene extends React.Component {
 						background: "black"}} />
 					<CanvasTexture
 						show={renderTexturePreview}
-						setRef={setTextureRef}
+						setRef={setTextureContext}
 						size={this.textureSize}
 						height={height} />
+					<ColorPalette />
 			</div>
 		)
 	}

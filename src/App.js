@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import logo from './logo.svg';
 import Scene from './Scene';
+import { StateProvider } from "./store"
 import './App.css';
 
 function App() {
@@ -25,12 +26,11 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <Scene sendData={sendData} />
-      {
-        // <p className="message">{message}</p>
-      }
-    </div>
+    <StateProvider>
+      <div className="App">
+        <Scene sendData={sendData} />
+      </div>
+    </StateProvider>
   );
 }
 
