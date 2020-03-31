@@ -5,7 +5,7 @@ import { StateProvider } from "./store"
 import './App.css';
 
 function App() {
-  const ws = new WebSocket('ws://1993.ngrok.io')
+  const ws = new WebSocket('ws://bb.ngrok.io')
   const [message, setMessage] = useState("")
 
   ws.binaryType = "arraybuffer"
@@ -17,7 +17,7 @@ function App() {
   }
 
   function onMessage(e) {
-    console.log(e.data);
+    console.log("New message:", e.data);
     setMessage(e.data)
   }
 
